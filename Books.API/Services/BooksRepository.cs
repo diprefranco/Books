@@ -18,6 +18,11 @@ public class BooksRepository : IBooksRepository
         return await _context.Books.FirstOrDefaultAsync(b => b.Id == id);
     }
 
+    public IEnumerable<Book> GetBooks()
+    {
+        return _context.Books.Include(b => b.Author).ToList();
+    }
+
     public async Task<IEnumerable<Book>> GetBooksAsync()
     {
         return await _context.Books.Include(b => b.Author).ToListAsync();
