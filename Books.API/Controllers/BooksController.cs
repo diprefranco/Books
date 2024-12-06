@@ -49,6 +49,9 @@ public class BooksController : ControllerBase
         {
             return NotFound();
         }
+
+        var bookCover = await _booksRepository.GetBookCoverAsync("someid");
+
         return Ok(book);
     }
     
