@@ -48,6 +48,39 @@ public class BooksRepository : IBooksRepository
         return null;
     }
 
+    public async Task<IEnumerable<BookCoverDto>> GetBookCoversProcessOneByOneAsync(Guid bookId)
+    {
+        var httpClient = _httpClientFactory.CreateClient();
+        var bookCovers = new List<BookCoverDto>();
+        var bookCoverUrls = new[]
+        {
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover1",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover2",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover3",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover4",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover5"
+        };
+
+        foreach (var bookCoverUrl in bookCoverUrls)
+        {
+            var response = await httpClient.GetAsync(bookCoverUrl);
+            if (response.IsSuccessStatusCode)
+            {
+                var bookCover = JsonSerializer.Deserialize<BookCoverDto>(await response.Content.ReadAsStringAsync(),
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                if (bookCover != null)
+                {
+                    bookCovers.Add(bookCover);
+                }
+            }
+        }
+
+        return bookCovers;
+    }
+
     public IEnumerable<Book> GetBooks()
     {
         return _context.Books.Include(b => b.Author).ToList();

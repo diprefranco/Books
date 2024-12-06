@@ -50,11 +50,12 @@ public class BooksController : ControllerBase
             return NotFound();
         }
 
-        var bookCover = await _booksRepository.GetBookCoverAsync("someid");
+        //var bookCover = await _booksRepository.GetBookCoverAsync("someid");
+        var bookCovers = await _booksRepository.GetBookCoversProcessOneByOneAsync(id);
 
         return Ok(book);
     }
-    
+
     [HttpPost("books")]
     [TypeFilter(typeof(BookResultFilter))]
     public async Task<IActionResult> CreateBook(BookForCreationDto book)
