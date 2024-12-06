@@ -13,9 +13,18 @@ public class BooksRepository : IBooksRepository
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<Book?> GetBookAsync(Guid id)
+    public void AddBook(Book book)
     {
-        return await _context.Books.Include(b => b.Author).FirstOrDefaultAsync(b => b.Id == id);
+        if (book == null)
+        {
+            throw new ArgumentNullException(nameof(book));
+        }
+        _context.Books.Add(book);
+    }
+
+    public Task<Book?> GetBookAsync(Guid id)
+    {
+        return _context.Books.Include(b => b.Author).FirstOrDefaultAsync(b => b.Id == id);
     }
 
     public IEnumerable<Book> GetBooks()
@@ -26,5 +35,10 @@ public class BooksRepository : IBooksRepository
     public async Task<IEnumerable<Book>> GetBooksAsync()
     {
         return await _context.Books.Include(b => b.Author).ToListAsync();
+    }
+
+    public async Task<bool> SaveChangesAsync()
+    {
+        return await _context.SaveChangesAsync() >= 0;
     }
 }
