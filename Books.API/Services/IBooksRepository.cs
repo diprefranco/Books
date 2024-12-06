@@ -8,6 +8,7 @@ public interface IBooksRepository
     void AddBook(Book book);
     Task<Book?> GetBookAsync(Guid id);
     Task<BookCoverDto?> GetBookCoverAsync(string id);
+    Task<IEnumerable<BookCoverDto>> GetBookCoversProcessAfterWaitForAllAsync(Guid bookId);
     Task<IEnumerable<BookCoverDto>> GetBookCoversProcessOneByOneAsync(Guid bookId);
     IEnumerable<Book> GetBooks();
     IAsyncEnumerable<Book> GetBooksAsAsyncEnumerable();

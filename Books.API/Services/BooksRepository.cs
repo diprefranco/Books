@@ -48,6 +48,45 @@ public class BooksRepository : IBooksRepository
         return null;
     }
 
+    public async Task<IEnumerable<BookCoverDto>> GetBookCoversProcessAfterWaitForAllAsync(Guid bookId)
+    {
+        var httpClient = _httpClientFactory.CreateClient();
+        var bookCovers = new List<BookCoverDto>();
+        var bookCoverUrls = new[]
+        {
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover1",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover2",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover3",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover4",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover5"
+        };
+
+        var bookCoverTasks = new List<Task<HttpResponseMessage>>();
+        foreach (var bookCoverUrl in bookCoverUrls)
+        {
+            bookCoverTasks.Add(httpClient.GetAsync(bookCoverUrl));
+        }
+
+        // wait for all the tasks to be completed.
+        var bookCoverTasksResults = await Task.WhenAll(bookCoverTasks);
+
+        // run through the results in reserve order
+        foreach (var bookCoverTaskResult in bookCoverTasksResults.Reverse())
+        {
+            var bookCover = JsonSerializer.Deserialize<BookCoverDto>(await bookCoverTaskResult.Content.ReadAsStringAsync(),
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+            if (bookCover != null)
+            {
+                bookCovers.Add(bookCover);
+            }
+        }
+
+        return bookCovers;
+    }
+
     public async Task<IEnumerable<BookCoverDto>> GetBookCoversProcessOneByOneAsync(Guid bookId)
     {
         var httpClient = _httpClientFactory.CreateClient();

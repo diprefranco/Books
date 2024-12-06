@@ -51,7 +51,8 @@ public class BooksController : ControllerBase
         }
 
         //var bookCover = await _booksRepository.GetBookCoverAsync("someid");
-        var bookCovers = await _booksRepository.GetBookCoversProcessOneByOneAsync(id);
+        //var bookCovers = await _booksRepository.GetBookCoversProcessOneByOneAsync(id);
+        var bookCovers = await _booksRepository.GetBookCoversProcessAfterWaitForAllAsync(id);
 
         return Ok(book);
     }
