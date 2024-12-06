@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Books.API.Controllers;
 
-[Route("api/books")]
+[Route("api")]
 [ApiController]
 public class BooksController : ControllerBase
 {
@@ -20,7 +20,7 @@ public class BooksController : ControllerBase
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
-    [HttpGet]
+    [HttpGet("books")]
     [TypeFilter(typeof(BooksResultFilter))]
     public async Task<IActionResult> GetBooks()
     {
@@ -28,7 +28,19 @@ public class BooksController : ControllerBase
         return Ok(books);
     }
 
-    [HttpGet("{id}", Name = "GetBook")]
+    [HttpGet("bookstream")]
+    public async IAsyncEnumerable<BookDto> StreamBooks()
+    {
+        HttpContext.Response.ContentType = "text/event-stream; charset=utf-8";
+
+        await foreach (var book in _booksRepository.GetBooksAsAsyncEnumerable())
+        {
+            await Task.Delay(500); //for demo purposes.
+            yield return _mapper.Map<BookDto>(book);
+        }
+    }
+
+    [HttpGet("books/{id}", Name = "GetBook")]
     [TypeFilter(typeof(BookResultFilter))]
     public async Task<IActionResult> GetBook(Guid id)
     {
@@ -40,7 +52,7 @@ public class BooksController : ControllerBase
         return Ok(book);
     }
     
-    [HttpPost]
+    [HttpPost("books")]
     [TypeFilter(typeof(BookResultFilter))]
     public async Task<IActionResult> CreateBook(BookForCreationDto book)
     {
