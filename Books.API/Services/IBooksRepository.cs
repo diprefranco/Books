@@ -8,5 +8,6 @@ public interface IBooksRepository
     Task<Book?> GetBookAsync(Guid id);
     IEnumerable<Book> GetBooks();
     Task<IEnumerable<Book>> GetBooksAsync();
+    Task<IEnumerable<Book>> GetBooksAsync(IEnumerable<Guid> bookIds);
     Task<bool> SaveChangesAsync();
 }
