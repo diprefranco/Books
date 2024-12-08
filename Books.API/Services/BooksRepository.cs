@@ -94,29 +94,36 @@ public class BooksRepository : IBooksRepository
         var bookCoverUrls = new[]
         {
             $"http://localhost:5096/api/bookcovers/{bookId}-cover1",
-            $"http://localhost:5096/api/bookcovers/{bookId}-cover2",
+            $"http://localhost:5096/api/bookcovers/{bookId}-cover2?returnFault=true",
             $"http://localhost:5096/api/bookcovers/{bookId}-cover3",
             $"http://localhost:5096/api/bookcovers/{bookId}-cover4",
             $"http://localhost:5096/api/bookcovers/{bookId}-cover5"
         };
 
-        foreach (var bookCoverUrl in bookCoverUrls)
+        using (var cancellationTokenSource = new CancellationTokenSource())
         {
-            var response = await httpClient.GetAsync(bookCoverUrl);
-            if (response.IsSuccessStatusCode)
+            foreach (var bookCoverUrl in bookCoverUrls)
             {
-                var bookCover = JsonSerializer.Deserialize<BookCoverDto>(await response.Content.ReadAsStringAsync(),
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-                if (bookCover != null)
+                var response = await httpClient.GetAsync(bookCoverUrl, cancellationTokenSource.Token);
+                if (response.IsSuccessStatusCode)
                 {
-                    bookCovers.Add(bookCover);
+                    var bookCover = JsonSerializer.Deserialize<BookCoverDto>(await response.Content.ReadAsStringAsync(cancellationTokenSource.Token),
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                    if (bookCover != null)
+                    {
+                        bookCovers.Add(bookCover);
+                    }
+                }
+                else
+                {
+                    cancellationTokenSource.Cancel();
                 }
             }
         }
-
+        
         return bookCovers;
     }
 
