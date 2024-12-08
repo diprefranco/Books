@@ -87,7 +87,7 @@ public class BooksRepository : IBooksRepository
         return bookCovers;
     }
 
-    public async Task<IEnumerable<BookCoverDto>> GetBookCoversProcessOneByOneAsync(Guid bookId)
+    public async Task<IEnumerable<BookCoverDto>> GetBookCoversProcessOneByOneAsync(Guid bookId, CancellationToken cancellationToken)
     {
         var httpClient = _httpClientFactory.CreateClient();
         var bookCovers = new List<BookCoverDto>();
@@ -102,24 +102,27 @@ public class BooksRepository : IBooksRepository
 
         using (var cancellationTokenSource = new CancellationTokenSource())
         {
-            foreach (var bookCoverUrl in bookCoverUrls)
+            using (var linkedCancellationTokerSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken))
             {
-                var response = await httpClient.GetAsync(bookCoverUrl, cancellationTokenSource.Token);
-                if (response.IsSuccessStatusCode)
+                foreach (var bookCoverUrl in bookCoverUrls)
                 {
-                    var bookCover = JsonSerializer.Deserialize<BookCoverDto>(await response.Content.ReadAsStringAsync(cancellationTokenSource.Token),
-                        new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
-                    if (bookCover != null)
+                    var response = await httpClient.GetAsync(bookCoverUrl, linkedCancellationTokerSource.Token);
+                    if (response.IsSuccessStatusCode)
                     {
-                        bookCovers.Add(bookCover);
+                        var bookCover = JsonSerializer.Deserialize<BookCoverDto>(await response.Content.ReadAsStringAsync(linkedCancellationTokerSource.Token),
+                            new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                        if (bookCover != null)
+                        {
+                            bookCovers.Add(bookCover);
+                        }
                     }
-                }
-                else
-                {
-                    cancellationTokenSource.Cancel();
+                    else
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
                 }
             }
         }

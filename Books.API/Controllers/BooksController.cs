@@ -42,7 +42,7 @@ public class BooksController : ControllerBase
 
     [HttpGet("books/{id}", Name = "GetBook")]
     [TypeFilter(typeof(BookWithCoversResultFilter))]
-    public async Task<IActionResult> GetBook(Guid id)
+    public async Task<IActionResult> GetBook(Guid id, CancellationToken cancellationToken)
     {
         var book = await _booksRepository.GetBookAsync(id);
         if (book == null)
@@ -51,7 +51,7 @@ public class BooksController : ControllerBase
         }
 
         //var bookCover = await _booksRepository.GetBookCoverAsync("someid");
-        var bookCovers = await _booksRepository.GetBookCoversProcessOneByOneAsync(id);
+        var bookCovers = await _booksRepository.GetBookCoversProcessOneByOneAsync(id, cancellationToken);
         //var bookCovers = await _booksRepository.GetBookCoversProcessAfterWaitForAllAsync(id);
 
         return Ok((book, bookCovers));
